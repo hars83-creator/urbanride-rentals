@@ -1,0 +1,28 @@
+{
+  "name": "UrbanRide Rentals",
+  "image": "mcr.microsoft.com/devcontainers/base:bookworm",
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "24"
+    }
+  },
+  "forwardPorts": [3000],
+  "portsAttributes": {
+    "3000": {
+      "label": "UrbanRide Rentals",
+      "onAutoForward": "openBrowser"
+    }
+  },
+  "postAttachCommand": "printf '\\nRun the app with: node server.js\\nThe forwarded Codespaces URL will open automatically on port 3000.\\n\\n'",
+  "customizations": {
+    "codespaces": {
+      "openFiles": ["README.md", "server.js", "public/app.js"]
+    },
+    "vscode": {
+      "settings": {
+        "files.trimTrailingWhitespace": true,
+        "editor.formatOnSave": false
+      }
+    }
+  }
+}

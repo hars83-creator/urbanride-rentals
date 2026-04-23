@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>UrbanRide Rentals</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="brand-block">
+          <div class="brand-mark">UR</div>
+          <div>
+            <p class="eyebrow">Full-stack fleet platform</p>
+            <h1>UrbanRide Rentals</h1>
+          </div>
+        </div>
+        <nav class="top-actions">
+          <a href="#fleet">Fleet</a>
+          <a href="#journeys">Bookings</a>
+          <a href="#support">Support</a>
+          <a href="#admin">Admin</a>
+          <button id="loginBtn" class="button secondary" type="button">Sign in</button>
+          <button id="logoutBtn" class="button ghost hidden" type="button">Logout</button>
+        </nav>
+      </header>
+
+      <main>
+        <section class="hero">
+          <div class="hero-copy">
+            <p class="eyebrow">Cars, bikes, SUVs, EVs</p>
+            <h2>Launch-ready vehicle rental system with booking, admin control, and QR payment.</h2>
+            <p class="hero-text">
+              Search inventory, calculate rental totals, book instantly, pay through UPI QR, track support, and manage
+              your fleet from one responsive dashboard.
+            </p>
+            <div class="hero-actions">
+              <button id="heroBrowseBtn" class="button primary" type="button">Explore vehicles</button>
+              <button id="demoCustomerBtn" class="button secondary" type="button">Use customer demo</button>
+              <button id="demoAdminBtn" class="button ghost" type="button">Use admin demo</button>
+            </div>
+          </div>
+
+          <div class="hero-panel">
+            <div class="hero-panel-card">
+              <span class="chip warm">Live features</span>
+              <ul class="feature-list">
+                <li>Secure customer and admin login</li>
+                <li>Fleet search with date-aware availability</li>
+                <li>Dynamic pricing, add-ons, coupons, taxes</li>
+                <li>UPI QR payment screen and invoice download</li>
+                <li>Booking, review, and support workflows</li>
+              </ul>
+            </div>
+            <div class="hero-panel-card accent">
+              <span class="chip dark">Demo access</span>
+              <div class="demo-creds">
+                <div>
+                  <p>Customer</p>
+                  <strong>aisha@urbanride.demo</strong>
+                  <span>aisha123</span>
+                </div>
+                <div>
+                  <p>Admin</p>
+                  <strong>admin@urbanride.demo</strong>
+                  <span>admin123</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="stats-strip" id="statsStrip"></section>
+
+        <section class="promotions-section">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Offers</p>
+              <h3>Coupons and bundled value adds</h3>
+            </div>
+            <p class="section-copy">Apply these promo codes during checkout and watch the quote update instantly.</p>
+          </div>
+          <div id="promoGrid" class="promo-grid"></div>
+        </section>
+
+        <section class="filters-card" id="fleet">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Fleet</p>
+              <h3>Browse the rental catalog</h3>
+            </div>
+            <p class="section-copy">Search by city, category, fuel, seating, and travel dates.</p>
+          </div>
+
+          <form id="filterForm" class="filter-grid">
+            <label>
+              <span>Search</span>
+              <input type="text" name="search" placeholder="Try SUV, electric, airport..." />
+            </label>
+            <label>
+              <span>Category</span>
+              <select name="category">
+                <option value="">All categories</option>
+                <option value="SUV">SUV</option>
+                <option value="Adventure">Adventure</option>
+                <option value="Sedan">Sedan</option>
+                <option value="Electric">Electric</option>
+                <option value="Scooter">Scooter</option>
+                <option value="Bike">Bike</option>
+              </select>
+            </label>
+            <label>
+              <span>City</span>
+              <select name="city">
+                <option value="">All cities</option>
+                <option value="Bengaluru">Bengaluru</option>
+                <option value="Mumbai">Mumbai</option>
+                <option value="Delhi">Delhi</option>
+                <option value="Hyderabad">Hyderabad</option>
+                <option value="Pune">Pune</option>
+                <option value="Chennai">Chennai</option>
+              </select>
+            </label>
+            <label>
+              <span>Fuel</span>
+              <select name="fuel">
+                <option value="">Any fuel</option>
+                <option value="Petrol">Petrol</option>
+                <option value="Diesel">Diesel</option>
+                <option value="Electric">Electric</option>
+              </select>
+            </label>
+            <label>
+              <span>Seats</span>
+              <select name="seatsMin">
+                <option value="">Any</option>
+                <option value="2">2+</option>
+                <option value="4">4+</option>
+                <option value="5">5+</option>
+                <option value="7">7+</option>
+              </select>
+            </label>
+            <label>
+              <span>Available from</span>
+              <input type="date" name="availableFrom" />
+            </label>
+            <label>
+              <span>Available to</span>
+              <input type="date" name="availableTo" />
+            </label>
+            <label>
+              <span>Sort by</span>
+              <select name="sort">
+                <option value="featured">Featured</option>
+                <option value="price-asc">Price: low to high</option>
+                <option value="price-desc">Price: high to low</option>
+                <option value="rating">Top rated</option>
+              </select>
+            </label>
+          </form>
+        </section>
+
+        <section class="fleet-grid" id="vehicleGrid"></section>
+
+        <section class="workspace-grid" id="journeys">
+          <article class="panel">
+            <div class="section-head compact">
+              <div>
+                <p class="eyebrow">My trips</p>
+                <h3>Bookings and invoices</h3>
+              </div>
+              <button id="refreshBookingsBtn" class="button ghost small hidden" type="button">Refresh</button>
+            </div>
+            <div id="bookingList" class="stack-list">
+              <div class="empty-state">Sign in to manage upcoming, active, and completed rentals.</div>
+            </div>
+          </article>
+
+          <article class="panel">
+            <div class="section-head compact">
+              <div>
+                <p class="eyebrow">Payment</p>
+                <h3>QR checkout</h3>
+              </div>
+            </div>
+            <div id="paymentPanel" class="payment-panel">
+              <div class="empty-state">Create a booking to generate a QR payment request and invoice.</div>
+            </div>
+          </article>
+        </section>
+
+        <section class="reviews-section">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Social proof</p>
+              <h3>Recent renter reviews</h3>
+            </div>
+            <p class="section-copy">Customers can submit feedback once a trip is marked complete.</p>
+          </div>
+          <div id="reviewGrid" class="review-grid"></div>
+        </section>
+
+        <section class="workspace-grid two-columns">
+          <article class="panel" id="support">
+            <div class="section-head compact">
+              <div>
+                <p class="eyebrow">Support</p>
+                <h3>Help desk</h3>
+              </div>
+            </div>
+            <form id="supportForm" class="stack-form">
+              <label>
+                <span>Subject</span>
+                <input name="subject" type="text" placeholder="Need to change pickup time" />
+              </label>
+              <label>
+                <span>Priority</span>
+                <select name="priority">
+                  <option value="low">Low</option>
+                  <option value="medium" selected>Medium</option>
+                  <option value="high">High</option>
+                </select>
+              </label>
+              <label>
+                <span>Message</span>
+                <textarea name="message" rows="4" placeholder="Tell support what you need."></textarea>
+              </label>
+              <button class="button primary" type="submit">Raise ticket</button>
+            </form>
+            <div id="supportList" class="stack-list"></div>
+          </article>
+
+          <article class="panel" id="admin">
+            <div class="section-head compact">
+              <div>
+                <p class="eyebrow">Fleet desk</p>
+                <h3>Admin dashboard</h3>
+              </div>
+              <button id="refreshAdminBtn" class="button ghost small hidden" type="button">Refresh</button>
+            </div>
+            <div id="adminPanel" class="admin-shell">
+              <div class="empty-state">Admin tools unlock when you sign in with the demo admin account.</div>
+            </div>
+          </article>
+        </section>
+      </main>
+
+      <footer class="footer">
+        <p>UrbanRide Rentals demo project with full-stack booking, QR payment, support, and admin controls.</p>
+        <p id="authStatus">Not signed in</p>
+      </footer>
+    </div>
+
+    <div id="authModal" class="modal hidden">
+      <div class="modal-backdrop" data-close-modal="auth"></div>
+      <div class="modal-card">
+        <button class="modal-close" type="button" data-close-modal="auth">Close</button>
+        <div class="section-head compact">
+          <div>
+            <p class="eyebrow">Account</p>
+            <h3>Sign in or create an account</h3>
+          </div>
+        </div>
+        <div class="tab-row">
+          <button id="showLoginTabBtn" class="tab-button active" type="button">Login</button>
+          <button id="showRegisterTabBtn" class="tab-button" type="button">Register</button>
+        </div>
+        <form id="authForm" class="stack-form">
+          <input id="authMode" name="mode" type="hidden" value="login" />
+          <label id="authNameWrap" class="hidden">
+            <span>Name</span>
+            <input name="name" type="text" placeholder="Your full name" />
+          </label>
+          <label id="authPhoneWrap" class="hidden">
+            <span>Phone</span>
+            <input name="phone" type="tel" placeholder="+91 98..." />
+          </label>
+          <label>
+            <span>Email</span>
+            <input name="email" type="email" placeholder="you@example.com" required />
+          </label>
+          <label>
+            <span>Password</span>
+            <input name="password" type="password" placeholder="••••••••" required />
+          </label>
+          <button class="button primary" type="submit">Continue</button>
+        </form>
+      </div>
+    </div>
+
+    <div id="bookingModal" class="modal hidden">
+      <div class="modal-backdrop" data-close-modal="booking"></div>
+      <div class="modal-card wide">
+        <button class="modal-close" type="button" data-close-modal="booking">Close</button>
+        <div class="section-head compact">
+          <div>
+            <p class="eyebrow">Rental flow</p>
+            <h3 id="bookingVehicleTitle">Create booking</h3>
+          </div>
+        </div>
+        <form id="bookingForm" class="booking-grid">
+          <input id="bookingVehicleId" name="vehicleId" type="hidden" />
+          <label>
+            <span>Start date</span>
+            <input name="startDate" type="date" required />
+          </label>
+          <label>
+            <span>End date</span>
+            <input name="endDate" type="date" required />
+          </label>
+          <label>
+            <span>Pickup location</span>
+            <input name="pickupLocation" type="text" placeholder="Indiranagar Hub" required />
+          </label>
+          <label>
+            <span>Dropoff location</span>
+            <input name="dropoffLocation" type="text" placeholder="Kempegowda Airport" required />
+          </label>
+          <label>
+            <span>Coupon code</span>
+            <input name="couponCode" type="text" placeholder="SAVE10" />
+          </label>
+
+          <div class="booking-addons">
+            <p>Add-ons</p>
+            <div id="bookingAddOnList" class="checkbox-grid"></div>
+          </div>
+
+          <div class="quote-card">
+            <div class="quote-head">
+              <h4>Live quote</h4>
+              <button id="previewQuoteBtn" class="button ghost small" type="button">Preview total</button>
+            </div>
+            <div id="quotePreview" class="quote-preview">
+              Select dates and add-ons to calculate the rental total.
+            </div>
+          </div>
+
+          <div class="booking-actions">
+            <button class="button secondary" id="previewQuoteBottomBtn" type="button">Recalculate</button>
+            <button class="button primary" type="submit">Book now</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div id="reviewModal" class="modal hidden">
+      <div class="modal-backdrop" data-close-modal="review"></div>
+      <div class="modal-card">
+        <button class="modal-close" type="button" data-close-modal="review">Close</button>
+        <div class="section-head compact">
+          <div>
+            <p class="eyebrow">Feedback</p>
+            <h3>Leave a review</h3>
+          </div>
+        </div>
+        <form id="reviewForm" class="stack-form">
+          <input id="reviewBookingId" name="bookingId" type="hidden" />
+          <label>
+            <span>Rating</span>
+            <select name="rating">
+              <option value="5">5 stars</option>
+              <option value="4">4 stars</option>
+              <option value="3">3 stars</option>
+              <option value="2">2 stars</option>
+              <option value="1">1 star</option>
+            </select>
+          </label>
+          <label>
+            <span>Title</span>
+            <input name="title" type="text" placeholder="What stood out?" />
+          </label>
+          <label>
+            <span>Comment</span>
+            <textarea name="comment" rows="4" placeholder="Describe the trip experience."></textarea>
+          </label>
+          <button class="button primary" type="submit">Publish review</button>
+        </form>
+      </div>
+    </div>
+
+    <div id="toastRegion" class="toast-region" aria-live="polite"></div>
+
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>

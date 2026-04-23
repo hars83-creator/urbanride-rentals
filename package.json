@@ -1,0 +1,12 @@
+{
+  "name": "urbanride-rental-system",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Full-stack vehicle rental system with booking, admin dashboard, and QR-based payment flow.",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "check": "node --check server.js"
+  }
+}
