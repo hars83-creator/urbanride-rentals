@@ -336,7 +336,7 @@ function buildSeedStore() {
       {
         id: adminId,
         role: "admin",
-        name: "Priya Fleet",
+        name: "Urban Fleet",
         email: "admin@urbanride.demo",
         phone: "+91 90000 11111",
         passwordHash: hashPassword("admin123"),
