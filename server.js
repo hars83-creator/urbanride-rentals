@@ -11,7 +11,8 @@ const publicDir = path.join(__dirname, "public");
 const dataDir = path.join(__dirname, "data");
 const storePath = path.join(dataDir, "store.json");
 const PORT = Number(process.env.PORT || 3000);
-const HOST = process.env.HOST || "127.0.0.1";
+const HOST = process.env.HOST || "0.0.0.0";
+const DEFAULT_CITY_COVERAGE = ["Bengaluru", "Mumbai", "Delhi", "Hyderabad", "Pune", "Chennai"];
 
 const MIME_TYPES = {
   ".html": "text/html; charset=utf-8",
@@ -71,19 +72,40 @@ const ADD_ON_CATALOG = [
   },
 ];
 
-const COMPANY = {
-  name: "UrbanRide Rentals",
-  supportPhone: "+91 98765 43210",
-  supportEmail: "help@urbanride.demo",
-  upiId: "urbanride-rentals@upi",
-  cityCoverage: ["Bengaluru", "Mumbai", "Delhi", "Hyderabad", "Pune", "Chennai"],
-};
+function parseCityCoverage(value) {
+  if (!value) {
+    return DEFAULT_CITY_COVERAGE;
+  }
+
+  const cities = value
+    .split(",")
+    .map((city) => city.trim())
+    .filter(Boolean);
+
+  return cities.length ? cities : DEFAULT_CITY_COVERAGE;
+}
+
+function buildCompanyConfig() {
+  return {
+    name: String(process.env.COMPANY_NAME || "UrbanRide Rentals").trim(),
+    supportPhone: String(process.env.SUPPORT_PHONE || "+91 98765 43210").trim(),
+    supportEmail: String(process.env.SUPPORT_EMAIL || "support@urbanride-rentals.com").trim().toLowerCase(),
+    upiId: String(process.env.UPI_ID || "urbanride-rentals@upi").trim(),
+    cityCoverage: parseCityCoverage(process.env.CITY_COVERAGE),
+  };
+}
+
+const COMPANY = buildCompanyConfig();
 
 let storeCache = null;
 let writeQueue = Promise.resolve();
 
 function hashPassword(password) {
   return createHash("sha256").update(password).digest("hex");
+}
+
+function normalizeEmail(value) {
+  return String(value || "").trim().toLowerCase();
 }
 
 function nowIso() {
@@ -107,6 +129,128 @@ function sanitizeUser(user) {
 
   const { passwordHash, ...safeUser } = user;
   return safeUser;
+}
+
+function buildConfiguredAdminUser(id = `usr-${randomUUID().slice(0, 8)}`) {
+  const email = normalizeEmail(process.env.ADMIN_EMAIL);
+  const password = String(process.env.ADMIN_PASSWORD || "");
+
+  if (!email || !password) {
+    return null;
+  }
+
+  return {
+    id,
+    role: "admin",
+    name: String(process.env.ADMIN_NAME || "Operations Admin").trim(),
+    email,
+    phone: String(process.env.ADMIN_PHONE || COMPANY.supportPhone).trim(),
+    passwordHash: hashPassword(password),
+    createdAt: nowIso(),
+  };
+}
+
+function buildArchivedCustomerUser(id, name, email, phone) {
+  return {
+    id,
+    role: "customer",
+    name,
+    email,
+    phone,
+    // Historical bookings remain visible in the storefront, but these seed accounts are not published for login.
+    passwordHash: hashPassword(`${id}:${randomUUID()}:${nowIso()}`),
+    createdAt: nowIso(),
+  };
+}
+
+function syncStoreConfiguration(store) {
+  let changed = false;
+  const company = buildCompanyConfig();
+  const legacyCustomerMap = new Map([
+    [
+      "aisha@urbanride.demo",
+      {
+        name: "Aisha Khan",
+        email: "records.aisha@urbanride-rentals.com",
+        phone: "+91 98111 22222",
+      },
+    ],
+    [
+      "rohan@urbanride.demo",
+      {
+        name: "Rohan Mehta",
+        email: "records.rohan@urbanride-rentals.com",
+        phone: "+91 98222 33333",
+      },
+    ],
+  ]);
+
+  if (JSON.stringify(store.meta?.company) !== JSON.stringify(company)) {
+    store.meta = { ...(store.meta || {}), company };
+    changed = true;
+  }
+
+  for (const user of store.users) {
+    const legacyCustomer = legacyCustomerMap.get(normalizeEmail(user.email));
+    if (!legacyCustomer) {
+      continue;
+    }
+
+    if (user.email !== legacyCustomer.email) {
+      user.email = legacyCustomer.email;
+      changed = true;
+    }
+    if (user.name !== legacyCustomer.name) {
+      user.name = legacyCustomer.name;
+      changed = true;
+    }
+    if (user.phone !== legacyCustomer.phone) {
+      user.phone = legacyCustomer.phone;
+      changed = true;
+    }
+    if (user.role !== "customer") {
+      user.role = "customer";
+      changed = true;
+    }
+  }
+
+  const legacyAdminIndex = store.users.findIndex((user) => normalizeEmail(user.email) === "admin@urbanride.demo");
+  if (legacyAdminIndex >= 0) {
+    const legacyAdminId = store.users[legacyAdminIndex].id;
+    store.users.splice(legacyAdminIndex, 1);
+    store.sessions = store.sessions.filter((session) => session.userId !== legacyAdminId);
+    changed = true;
+  }
+
+  const configuredAdmin = buildConfiguredAdminUser();
+  if (!configuredAdmin) {
+    return changed;
+  }
+
+  const existing = store.users.find((user) => normalizeEmail(user.email) === configuredAdmin.email);
+  if (existing) {
+    if (existing.role !== "admin") {
+      existing.role = "admin";
+      changed = true;
+    }
+    if (existing.name !== configuredAdmin.name) {
+      existing.name = configuredAdmin.name;
+      changed = true;
+    }
+    if (existing.phone !== configuredAdmin.phone) {
+      existing.phone = configuredAdmin.phone;
+      changed = true;
+    }
+    if (existing.passwordHash !== configuredAdmin.passwordHash) {
+      existing.passwordHash = configuredAdmin.passwordHash;
+      changed = true;
+    }
+  } else {
+    store.users.unshift(configuredAdmin);
+    changed = true;
+  }
+
+  return changed;
 }
 
 function notFound(res, message = "Not found") {
@@ -291,7 +435,6 @@ function buildVehicleSeeds() {
 function buildSeedStore() {
   const today = new Date();
 
-  const adminId = "usr-admin";
   const customerId = "usr-aisha";
   const customerTwoId = "usr-rohan";
 
@@ -333,33 +476,18 @@ function buildSeedStore() {
       },
     ],
     users: [
-      {
-        id: adminId,
-        role: "admin",
-        name: "priya Fleet",
-        email: "admin@urbanride.demo",
-        phone: "+91 90000 11111",
-        passwordHash: hashPassword("admin123"),
-        createdAt: nowIso(),
-      },
-      {
-        id: customerId,
-        role: "customer",
-        name: "Aisha Khan",
-        email: "aisha@urbanride.demo",
-        phone: "+91 98111 22222",
-        passwordHash: hashPassword("aisha123"),
-        createdAt: nowIso(),
-      },
-      {
-        id: customerTwoId,
-        role: "customer",
-        name: "Rohan Mehta",
-        email: "rohan@urbanride.demo",
-        phone: "+91 98222 33333",
-        passwordHash: hashPassword("rohan123"),
-        createdAt: nowIso(),
-      },
+      buildArchivedCustomerUser(
+        customerId,
+        "Aisha Khan",
+        "records.aisha@urbanride-rentals.com",
+        "+91 98111 22222"
+      ),
+      buildArchivedCustomerUser(
+        customerTwoId,
+        "Rohan Mehta",
+        "records.rohan@urbanride-rentals.com",
+        "+91 98222 33333"
+      ),
     ],
     vehicles: buildVehicleSeeds(),
     bookings: [
@@ -485,6 +613,10 @@ async function loadStore() {
   await ensureStore();
   const raw = await readFile(storePath, "utf-8");
   storeCache = JSON.parse(raw);
+  const changed = syncStoreConfiguration(storeCache);
+  if (changed) {
+    await saveStore(storeCache);
+  }
   return storeCache;
 }
 
@@ -682,10 +814,7 @@ function buildBootstrapPayload(store, user = null) {
       })
       .sort((left, right) => new Date(right.createdAt) - new Date(left.createdAt)),
     user: sanitizeUser(user),
-    demoLogins: {
-      admin: { email: "admin@urbanride.demo", password: "admin123" },
-      customer: { email: "aisha@urbanride.demo", password: "aisha123" },
-    },
+    staffAccessConfigured: store.users.some((entry) => entry.role === "admin"),
   };
 }
 
@@ -891,6 +1020,15 @@ async function serveStaticFile(req, res, pathname) {
 async function handleApi(req, res, url, store) {
   const pathname = url.pathname;
   const method = req.method || "GET";
+
+  if (method === "GET" && pathname === "/api/health") {
+    sendJson(res, 200, {
+      ok: true,
+      service: "UrbanRide Rentals API",
+      time: nowIso(),
+    });
+    return true;
+  }
 
   if (method === "GET" && pathname === "/api/bootstrap") {
     const context = getAuthContext(store, req);

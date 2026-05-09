@@ -194,7 +194,7 @@ function renderStats() {
     </div>
     <div class="stat-card">
       <strong>${stats.completedBookings}</strong>
-      <span>completed sample journeys</span>
+      <span>completed journeys tracked</span>
     </div>
     <div class="stat-card">
       <strong>${stats.averageRating}</strong>
@@ -333,7 +333,7 @@ function renderPaymentPanel() {
         <div>
           <p class="eyebrow">Booking ${escapeHtml(state.paymentContext.bookingId)}</p>
           <h4>${escapeHtml(booking?.vehicle?.name || "Vehicle payment")}</h4>
-          <p class="payment-note">Scan the QR with any UPI app or mark the payment as received for this demo flow.</p>
+          <p class="payment-note">Complete payment in your UPI app, then confirm it here to update the booking status.</p>
         </div>
         <span class="status-badge ${escapeHtml(booking?.paymentStatus || "pending")}">${escapeHtml(booking?.paymentStatus || "pending")}</span>
       </div>
@@ -437,10 +437,15 @@ function renderSupport() {
 
 function renderAdmin() {
   const isAdmin = state.user?.role === "admin";
+  const staffConfigured = Boolean(state.bootstrap?.staffAccessConfigured);
   refs.refreshAdminBtn.classList.toggle("hidden", !isAdmin);
 
   if (!isAdmin || !state.admin) {
-    refs.adminPanel.innerHTML = `<div class="empty-state">Admin tools unlock when you sign in with the demo admin account.</div>`;
+    refs.adminPanel.innerHTML = `<div class="empty-state">${
+      staffConfigured
+        ? "Staff controls are available to authorized operations accounts."
+        : "Staff access can be enabled by setting ADMIN_EMAIL and ADMIN_PASSWORD on the server."
+    }</div>`;
     return;
   }
 
@@ -1129,12 +1134,14 @@ function attachListeners() {
     document.querySelector("#fleet")?.scrollIntoView({ behavior: "smooth", block: "start" });
   });
 
-  document.querySelector("#demoCustomerBtn").addEventListener("click", () => {
-    loginWithCredentials("aisha@urbanride.demo", "aisha123").catch((error) => showToast(error.message));
+  document.querySelector("#heroRegisterBtn").addEventListener("click", () => {
+    setAuthMode("register");
+    openModal("auth");
   });
 
-  document.querySelector("#demoAdminBtn").addEventListener("click", () => {
-    loginWithCredentials("admin@urbanride.demo", "admin123").catch((error) => showToast(error.message));
+  document.querySelector("#heroStaffBtn").addEventListener("click", () => {
+    setAuthMode("login");
+    openModal("auth");
   });
 
   refs.refreshBookingsBtn.addEventListener("click", () => {

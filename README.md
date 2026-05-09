@@ -1,49 +1,43 @@
 # UrbanRide Rentals
 
-A full-stack vehicle rental system built as a dependency-light Node.js project with a polished frontend and JSON-backed backend.
+UrbanRide Rentals is a deployable full-stack vehicle rental website built with a lightweight Node.js backend and a responsive frontend. It supports public fleet browsing, self-service customer registration, booking workflows, UPI QR payment instructions, support tickets, and staff operations.
 
-## What this project includes
+## Features
 
-- Customer and admin authentication with seeded demo accounts
-- Vehicle catalog with filters for city, category, fuel, seating, and date availability
-- Dynamic quote calculation with coupons, add-ons, taxes, and refundable deposit
-- Booking creation flow with pickup and dropoff locations
-- QR-based payment experience using a UPI payment payload
-- Booking management with payment confirmation, cancellation, and invoice download
-- Review submission for completed trips
-- Support ticket workflow
-- Admin dashboard for metrics, fleet status, bookings, tickets, and vehicle creation
-- Seed data for vehicles, bookings, reviews, coupons, and support tickets
-
-## Tech stack
-
-- Backend: Node.js native `http` server
-- Frontend: HTML, CSS, vanilla JavaScript
-- Persistence: local JSON file at `data/store.json`
-- Payment demo: UPI payment payload plus hosted QR image rendering
+- Public vehicle catalog with filters for city, category, fuel type, seating, and availability window
+- Customer registration and sign-in
+- Booking flow with live quote calculation, coupons, add-ons, taxes, and refundable deposits
+- UPI QR payment instructions with invoice download
+- Booking cancellation, review submission, and support tickets
+- Staff dashboard for fleet updates, booking operations, ticket resolution, and vehicle creation
+- JSON persistence in `data/store.json`
+- Environment-based company and admin configuration for deployment
+- Docker support and GitHub Codespaces support
 
 ## Project structure
 
 ```text
 .
+├── .devcontainer/
 ├── public/
 │   ├── app.js
 │   ├── index.html
 │   └── styles.css
-├── data/
+├── .dockerignore
+├── Dockerfile
 ├── package.json
 └── server.js
 ```
 
 ## Run locally
 
-This project does not require external packages.
+This project has no external runtime dependencies beyond Node.js.
 
 ```bash
 node server.js
 ```
 
-The app starts on:
+The app will be available at:
 
 ```text
 http://127.0.0.1:3000
@@ -52,57 +46,86 @@ http://127.0.0.1:3000
 Optional:
 
 ```bash
-HOST=127.0.0.1 PORT=3000 node server.js
+HOST=0.0.0.0 PORT=3000 node server.js
 ```
 
-If you have `npm` available on your machine, you can also use:
+If `npm` is available on your machine, you can also use:
 
 ```bash
 npm start
 ```
 
-## Run on GitHub Codespaces
+## Environment variables
 
-This repo now includes a ready-to-use Codespaces config at `.devcontainer/devcontainer.json`.
+Set these before the first production start, especially for staff access:
 
-1. Create a new empty GitHub repository.
-2. Push this project:
+- `ADMIN_EMAIL`: email address for the operations admin account
+- `ADMIN_PASSWORD`: password for the operations admin account
+- `ADMIN_NAME`: optional display name for the admin account
+- `ADMIN_PHONE`: optional phone number for the admin account
+- `COMPANY_NAME`: optional company name override
+- `SUPPORT_PHONE`: optional support phone override
+- `SUPPORT_EMAIL`: optional support email override
+- `UPI_ID`: optional UPI ID override
+- `CITY_COVERAGE`: optional comma-separated list of supported cities
+- `HOST`: bind host, defaults to `0.0.0.0`
+- `PORT`: server port, defaults to `3000`
+
+Example:
 
 ```bash
-git init
-git add .
-git commit -m "Initial commit"
-git branch -M main
-git remote add origin https://github.com/YOUR_USERNAME/YOUR_REPO.git
-git push -u origin main
+export ADMIN_EMAIL=ops@yourdomain.com
+export ADMIN_PASSWORD='replace-with-a-strong-password'
+export ADMIN_NAME='UrbanRide Operations'
+export SUPPORT_EMAIL=support@yourdomain.com
+export SUPPORT_PHONE='+91 98765 43210'
+export UPI_ID='payments@yourupi'
+node server.js
 ```
 
-3. On GitHub, open the repo.
-4. Click `Code` -> `Codespaces` -> `Create codespace on main`.
-5. In the Codespaces terminal, run:
+Notes:
+
+- Customer accounts are created through the registration form in the website.
+- Historical reviews and past bookings are seeded automatically to populate the storefront, but public login credentials are not exposed.
+- If you add `ADMIN_EMAIL` and `ADMIN_PASSWORD` later, the app will sync that staff account on startup.
+
+## Deployment
+
+### Direct Node deployment
+
+Start the application with:
 
 ```bash
 node server.js
 ```
 
-6. Open the forwarded port `3000` in the browser when prompted.
+### Docker
 
-Why Codespaces:
+Build and run:
 
-- GitHub Pages will not run this app because Pages is for static sites.
-- This project has a Node backend, so Codespaces is the easiest GitHub-native way to run it.
+```bash
+docker build -t urbanride-rentals .
+docker run -p 3000:3000 \
+  -e ADMIN_EMAIL=ops@yourdomain.com \
+  -e ADMIN_PASSWORD='replace-with-a-strong-password' \
+  urbanride-rentals
+```
 
-## Demo accounts
+### GitHub Codespaces
 
-- Customer
-  - Email: `aisha@urbanride.demo`
-  - Password: `aisha123`
-- Admin
-  - Email: `admin@urbanride.demo`
-  - Password: `admin123`
+1. Open the repository on GitHub.
+2. Click `Code` -> `Codespaces` -> `Create codespace on main`.
+3. In the Codespaces terminal, run:
 
-## Main API routes
+```bash
+node server.js
+```
 
+4. Open forwarded port `3000`.
+
+## API routes
+
+- `GET /api/health`
 - `GET /api/bootstrap`
 - `GET /api/vehicles`
 - `POST /api/register`
@@ -118,12 +141,13 @@ Why Codespaces:
 - `POST /api/reviews`
 - `GET /api/tickets`
 - `POST /api/tickets`
+- `PATCH /api/tickets/:id`
 - `GET /api/admin/dashboard`
 - `POST /api/vehicles`
 - `PUT /api/vehicles/:id`
 
-## Notes
+## Operational notes
 
-- `data/store.json` is created automatically on first run.
-- QR images are rendered through `api.qrserver.com` for demo convenience. In production, replace this with Razorpay, Stripe, PhonePe, Paytm, or your preferred payment provider.
-- Passwords are hashed with SHA-256 for the demo, but production systems should use a slow password hashing algorithm such as bcrypt or Argon2.
+- `data/store.json` is created automatically on first run and is intentionally ignored by Git.
+- QR images are still rendered through `api.qrserver.com`. For regulated production payment flows, replace this with a managed payment integration such as Razorpay, Stripe, PhonePe, or Paytm.
+- Passwords are hashed with SHA-256 for simplicity. For higher-security production deployments, migrate to bcrypt or Argon2.

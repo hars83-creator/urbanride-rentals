@@ -273,13 +273,13 @@ button {
   line-height: 1.7;
 }
 
-.demo-creds {
+.hero-detail-grid {
   display: grid;
   gap: 14px;
   margin-top: 16px;
 }
 
-.demo-creds div {
+.hero-detail-grid div {
   display: grid;
   gap: 4px;
   padding: 14px;
@@ -287,13 +287,13 @@ button {
   border-radius: var(--radius-md);
 }
 
-.demo-creds p,
-.demo-creds strong,
-.demo-creds span {
+.hero-detail-grid p,
+.hero-detail-grid strong,
+.hero-detail-grid span {
   margin: 0;
 }
 
-.demo-creds span {
+.hero-detail-grid span {
   color: rgba(255, 249, 241, 0.7);
 }
 
