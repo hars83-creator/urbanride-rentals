@@ -79,7 +79,7 @@ export ADMIN_PASSWORD='replace-with-a-strong-password'
 export ADMIN_NAME='UrbanRide Operations'
 export SUPPORT_EMAIL=support@yourdomain.com
 export SUPPORT_PHONE='+91 98765 43210'
-export UPI_ID='payments@yourupi'
+export UPI_ID='harsh97830544@oksbi'
 node server.js
 ```
 

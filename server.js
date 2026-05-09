@@ -90,7 +90,7 @@ function buildCompanyConfig() {
     name: String(process.env.COMPANY_NAME || "UrbanRide Rentals").trim(),
     supportPhone: String(process.env.SUPPORT_PHONE || "+91 98765 43210").trim(),
     supportEmail: String(process.env.SUPPORT_EMAIL || "support@urbanride-rentals.com").trim().toLowerCase(),
-    upiId: String(process.env.UPI_ID || "urbanride-rentals@upi").trim(),
+    upiId: String(process.env.UPI_ID || "harsh97830544@oksbi").trim(),
     cityCoverage: parseCityCoverage(process.env.CITY_COVERAGE),
   };
 }
