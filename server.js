@@ -7,6 +7,7 @@ import { fileURLToPath } from "node:url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const distDir = path.join(__dirname, "dist");
 const publicDir = path.join(__dirname, "public");
 const dataDir = path.join(__dirname, "data");
 const storePath = path.join(dataDir, "store.json");
@@ -980,11 +981,26 @@ function buildInvoiceText(store, booking) {
   ].join("\n");
 }
 
-async function serveStaticFile(req, res, pathname) {
-  const safePath = pathname === "/" ? "/index.html" : pathname;
-  const filePath = path.normalize(path.join(publicDir, safePath));
+async function resolveStaticBaseDir() {
+  try {
+    await access(path.join(distDir, "index.html"));
+    return distDir;
+  } catch {
+    try {
+      await access(path.join(publicDir, "index.html"));
+      return publicDir;
+    } catch {
+      return distDir;
+    }
+  }
+}
 
-  if (!filePath.startsWith(publicDir)) {
+async function serveStaticFile(req, res, pathname) {
+  const staticDir = await resolveStaticBaseDir();
+  const safePath = pathname === "/" ? "/index.html" : pathname;
+  const filePath = path.normalize(path.join(staticDir, safePath));
+
+  if (!filePath.startsWith(staticDir)) {
     notFound(res);
     return;
   }
@@ -1003,7 +1019,7 @@ async function serveStaticFile(req, res, pathname) {
     });
     createReadStream(filePath).pipe(res);
   } catch {
-    const fallback = path.join(publicDir, "index.html");
+    const fallback = path.join(staticDir, "index.html");
     try {
       await access(fallback);
       res.writeHead(200, {
@@ -1012,7 +1028,7 @@ async function serveStaticFile(req, res, pathname) {
       });
       createReadStream(fallback).pipe(res);
     } catch {
-      notFound(res);
+      sendText(res, 503, "Frontend build not found. Run npm run build or npm run dev.");
     }
   }
 }

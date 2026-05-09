@@ -6,17 +6,21 @@
       "version": "24"
     }
   },
-  "forwardPorts": [3000],
+  "forwardPorts": [3000, 5173],
   "portsAttributes": {
     "3000": {
-      "label": "UrbanRide Rentals",
+      "label": "UrbanRide API",
+      "onAutoForward": "silent"
+    },
+    "5173": {
+      "label": "UrbanRide Frontend",
       "onAutoForward": "openBrowser"
     }
   },
-  "postAttachCommand": "printf '\\nRun the app with: node server.js\\nThe forwarded Codespaces URL will open automatically on port 3000.\\n\\n'",
+  "postAttachCommand": "printf '\\nInstall dependencies if needed with: npm install\\nStart the full development stack with: npm run dev\\nThe forwarded frontend URL will open automatically on port 5173.\\n\\n'",
   "customizations": {
     "codespaces": {
-      "openFiles": ["README.md", "server.js", "public/app.js"]
+      "openFiles": ["README.md", "src/App.jsx", "server.js"]
     },
     "vscode": {
       "settings": {
